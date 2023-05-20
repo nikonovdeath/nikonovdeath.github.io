@@ -1,0 +1,9 @@
+@font-face {
+font-family: "Blue curve";
+src: url("Blue curve.eot") format("eot"); /* IE9 Compat Modes */
+src: url("Blue curve.eot?#iefix") format("embedded-opentype"), /* IE6-IE8 */
+     url("Blue curve.woff") format("woff"), /* Modern Browsers */
+     url("Blue curve.ttf") format("truetype"); /* Safari, Android, iOS */
+font-weight: normal;
+font-style: normal;
+}
