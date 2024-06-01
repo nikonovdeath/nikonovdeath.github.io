@@ -1,0 +1,42 @@
+body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #000;
+    overflow: hidden;
+}
+
+#game-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+#score {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    color: #fff;
+    font-size: 24px;
+    z-index: 100;
+}
+
+.star, .bomb {
+    position: absolute;
+    width: 100px;  /* Размер 100x100 пикселей */
+    height: 100px; /* Размер 100x100 пикселей */
+    background-size: cover;
+}
+
+.star {
+    background-image: url('images/nikita.png');
+}
+
+.bomb {
+    background-image: url('images/bomb.png');
+}
