@@ -1,68 +1,66 @@
-let score = 0;
-let starInterval = 1000; // Начальная частота появления звездочек (в миллисекундах)
-let fallSpeed = 20; // Увеличим скорость падения звездочек (меньше значение - быстрее падение)
+const counterElement = document.querySelector('.counter');
+const coinElement = document.querySelector('.coin');
 
-document.addEventListener("DOMContentLoaded", () => {
-    const gameContainer = document.getElementById('game-container');
-    const scoreDisplay = document.getElementById('score');
+let clicks = 0;
 
-    function createStarOrBomb() {
-        const element = document.createElement('div');
-        const isBomb = Math.random() < 0.2; // Вероятность появления бомбочки 20%
-
-        if (isBomb) {
-            element.classList.add('bomb');
-            element.addEventListener('click', () => {
-                score -= 30;
-                if (score < 0) score = 0;
-                scoreDisplay.textContent = `Словлено Никит: ${score}`;
-                element.remove();
-
-                // Изменяем фон на красный на 0.5 секунды
-                document.body.style.backgroundColor = 'red';
-                setTimeout(() => {
-                    document.body.style.backgroundColor = 'black';
-                }, 500);
-            });
-        } else {
-            element.classList.add('star');
-            element.addEventListener('click', () => {
-                score++;
-                scoreDisplay.textContent = `Словлено Никит: ${score}`;
-                element.remove();
-
-                // Увеличиваем частоту появления звездочек каждые 10 кликов
-                if (score % 10 === 0) {
-                    increaseStarFrequency();
-                }
-            });
-        }
-
-        element.style.left = `${Math.random() * (window.innerWidth - 100)}px`; // Учитываем размер элемента
-        element.style.top = '0px';
-
-        gameContainer.appendChild(element);
-
-        let fallInterval = setInterval(() => {
-            let top = parseFloat(element.style.top);
-            if (top < window.innerHeight - 100) { // Учитываем размер элемента
-                element.style.top = `${top + 5}px`;
-            } else {
-                element.remove();
-                clearInterval(fallInterval);
-            }
-        }, fallSpeed); // Увеличиваем скорость падения элементов
+// Функция для получения значения cookie
+function getCookie(name) {
+  const cookie = document.cookie;
+  const parts = cookie.split('; ');
+  for (let i = 0; i < parts.length; i++) {
+    const pair = parts[i].split('=');
+    if (pair[0] === name) {
+      return decodeURIComponent(pair[1]);
     }
+  }
+  return null;
+}
 
-    function increaseStarFrequency() {
-        clearInterval(starCreationInterval); // Останавливаем текущий интервал
-        starInterval *= 0.9; // Уменьшаем интервал (увеличиваем частоту появления элементов)
-        startStarCreation(); // Запускаем новый интервал с новой частотой
-    }
+// Функция для установки значения cookie
+function setCookie(name, value, days) {
+  let expires = '';
+  if (days) {
+    const date = new Date();
+    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+    expires = '; expires=' + date.toUTCString();
+  }
+  document.cookie = name + '=' + encodeURIComponent(value) + expires + '; path=/';
+}
 
-    function startStarCreation() {
-        starCreationInterval = setInterval(createStarOrBomb, starInterval);
-    }
+// Проверка, есть ли у пользователя cookie с идентификатором
+let userId = getCookie('userId');
+if (!userId) {
+  // Если нет, генерируем новый UUID
+  userId = generateUUID();
+  setCookie('userId', userId, 365); // Сохраняем ID на год
+}
 
-    let starCreationInterval = setInterval(createStarOrBomb, starInterval); // Начинаем создавать элементы
+// Загрузка данных из cookie
+const cookieClicks = getCookie(`clicks_${userId}`); // имя cookie с уникальным идентификатором
+if (cookieClicks) {
+  clicks = parseInt(cookieClicks);
+}
+
+// Функция для генерации UUID
+function generateUUID() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
+// Обновление счетчика
+function updateCounter() {
+  counterElement.textContent = clicks;
+}
+
+// Обработчик клика по монетке
+coinElement.addEventListener('click', () => {
+  clicks++;
+  updateCounter();
+
+  // Сохранение данных в cookie с уникальным идентификатором
+  setCookie(`clicks_${userId}`, clicks, 30); // Сохраняем на 30 дней
 });
+
+updateCounter();
