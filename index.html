@@ -36,6 +36,8 @@
             cursor: pointer;
             -webkit-tap-highlight-color: transparent;
             transition: transform 0.1s ease-in-out; /* Добавляем анимацию */
+            border-radius: 50%;
+            border: 10px solid #fff;
         }
 
         .coin:focus {
@@ -48,8 +50,9 @@
         }
 
         .counter {
-            font-size: 1.5em;
+            font-size: 2em;
             margin-top: 10px;
+            font-family: 'Tiny5', cursive;
         }
 
         .upgrades {
@@ -91,60 +94,169 @@
             font-size: 3em;
             margin-bottom: 10px;
         }
+
+        .button {
+            background-color: #DAA520; /* Зеленый цвет */
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .button:hover {
+            background-color: #B8860B; /* Темнее зеленый при наведении */
+        }
+
+        .popup {
+            display: none;
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #696969;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            z-index: 10;
+            width: 300px;
+        }
+
+        .popup-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .popup-close {
+            position: absolute;
+            top: 10px;
+            color: black;
+            right: 10px;
+            cursor: pointer;
+        }
+
+        .popup-close:hover {
+            color: red;
+        }
+
+        .upgrade-button {
+            background-color: #DAA520; /* Зеленый цвет */
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 50px;
+        }
+
+        .upgrade-button:hover {
+            background-color: #3e8e41; /* Темнее зеленый при наведении */
+        }
+
+        .level-bar {
+            width: 300px;
+            height: 10px;
+            background-color: #696969;
+            border-radius: 5px;
+            margin-top: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .level-bar-fill {
+            height: 100%;
+            background-color: #DAA520;
+            width: 0%;
+            transition: width 0.5s ease-in-out;
+        }
+
+        .level-text {
+            position: absolute;
+            top: -2px; /* Изменено, чтобы текст был над полоской */
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.7em;
+        }
     </style>
 </head>
 <body>
+    <div class="container">
         <div class="title" style="font-family: 'Tiny5', cursive;">NiksClicks</div>
         <div class="highlighted-text" style="font-family: 'Tiny5', cursive;">⚠️ Beta</div>
         <div class="counter" id="counter">0</div>
         <div class="coin" id="coin"></div>
-        <div class="upgrades" id="upgrades"></div>
+        <button class="button" id="openUpgrades">Улучшения</button>
+        <div class="level-bar">
+            <div class="level-bar-fill" id="levelBarFill"></div>
+            <div class="level-text" id="levelText">Уровень 1</div>
+        </div>
+        <div class="popup" id="upgradesPopup">
+            <span class="popup-close" onclick="closePopup()">×</span>
+            <div class="popup-content">
+                <div class="upgrades" id="upgrades"></div>
+            </div>
+        </div>
     </div>
 
     <script>
-       let clicks = 0;
-let cps = 0; // Clicks per second
-let upgrades = {
-    "Автокликер": {
-        cost: 10,
-        level: 0,
-        cps: 0.1
-    },
-    "Суперкликер": {
-        cost: 100,
-        level: 0,
-        cps: 1
-    }
-};
+        let clicks = 0;
+        let cps = 0; // Clicks per second
+        let upgrades = {
+            "Автокликер": {
+                cost: 10,
+                level: 0,
+                cps: 0.1
+            },
+            "Суперкликер": {
+                cost: 100,
+                level: 0,
+                cps: 1
+            }
+        };
 
-const counter = document.getElementById('counter');
-const coin = document.getElementById('coin');
-const upgradesContainer = document.getElementById('upgrades');
+        const counter = document.getElementById('counter');
+        const coin = document.getElementById('coin');
+        const upgradesContainer = document.getElementById('upgrades');
+        const openUpgradesButton = document.getElementById('openUpgrades');
+        const upgradesPopup = document.getElementById('upgradesPopup');
+        const levelBarFill = document.getElementById('levelBarFill');
+        const levelText = document.getElementById('levelText');
 
-// Загрузка прогресса из LocalStorage
-loadProgress();
+        // Загрузка прогресса из LocalStorage
+        loadProgress();
 
-// Обработка кликов по монете
-coin.addEventListener('click', () => {
-    clicks++;
-    updateCounter();
-    saveProgress();
-});
+        // Обработка кликов по монете
+        coin.addEventListener('click', () => {
+            clicks++;
+            updateCounter();
+            updateLevel();
+            saveProgress();
+        });
 
-// Обновление счетчика кликов
-function updateCounter() {
-    counter.textContent = Math.floor(clicks); // Используем Math.floor для округления вниз
-}
+        // Обновление счетчика кликов
+        function updateCounter() {
+            counter.textContent = Math.floor(clicks); // Используем Math.floor для округления вниз
+        }
 
-// Обновление счётчика кликов в секунду (CPS)
-function updateCPS() {
-    cps = 0;
-    for (const upgradeName in upgrades) {
-        cps += upgrades[upgradeName].cps * upgrades[upgradeName].level;
-    }
-    // Обновление счётчика CPS (например, в консоли)
-    console.log("CPS:", cps);
-}
+        // Обновление счётчика кликов в секунду (CPS)
+        function updateCPS() {
+            cps = 0;
+            for (const upgradeName in upgrades) {
+                cps += upgrades[upgradeName].cps * upgrades[upgradeName].level;
+            }
+            // Обновление счётчика CPS (например, в консоли)
+            console.log("CPS:", cps);
+        }
 
 // Обновление отображения улучшений
 function updateUpgrades() {
@@ -160,25 +272,29 @@ function updateUpgrades() {
                     <button class="upgrade-button">Купить</button>
                 `;
         upgradeElement.querySelector('.upgrade-button').addEventListener('click', () => {
+            // Проверяем, достаточно ли денег для покупки *на следующем уровне*
             if (clicks >= upgrade.cost) {
                 clicks -= upgrade.cost;
-                upgrade.level++;
+                // Увеличиваем уровень только если он ниже максимального достигнутого уровня
+                if (upgrade.level < upgrade.maxLevel) {
+                    upgrade.level++;
+                }
                 upgrade.cost = Math.round(upgrade.cost * 1.5); // Увеличение стоимости после покупки
                 updateCounter();
                 updateUpgrades();
                 updateCPS();
                 saveProgress();
-            }
+            } 
         });
         upgradesContainer.appendChild(upgradeElement);
     }
 }
 
-// Сохранение прогресса в LocalStorage
-function saveProgress() {
-    localStorage.setItem('clicks', clicks);
-    localStorage.setItem('upgrades', JSON.stringify(upgrades));
-}
+        // Сохранение прогресса в LocalStorage
+        function saveProgress() {
+            localStorage.setItem('clicks', clicks);
+            localStorage.setItem('upgrades', JSON.stringify(upgrades));
+        }
 
 // Загрузка прогресса из LocalStorage
 function loadProgress() {
@@ -186,20 +302,60 @@ function loadProgress() {
     const storedUpgrades = localStorage.getItem('upgrades');
     if (storedUpgrades) {
         upgrades = JSON.parse(storedUpgrades);
+        // Инициализируем maxLevel для каждого улучшения
+        for (const upgradeName in upgrades) {
+            upgrades[upgradeName].maxLevel = upgrades[upgradeName].level; // Инициализируем maxLevel текущим уровнем
+        }
     }
     updateCounter();
-    updateUpgrades();
+    updateUpgrades(); 
     updateCPS();
 }
 
-// Автоматический клик
-setInterval(() => {
-    clicks += cps;
-    updateCounter();
-    saveProgress();
-}, 1000); // 1 секунда
+        // Автоматический клик
+        setInterval(() => {
+            clicks += cps;
+            updateCounter();
+            updateLevel();
+            saveProgress();
+        }, 1000); // 1 секунда
 
-updateUpgrades(); // Отображение улучшений
+        // Открытие/закрытие всплывающего окна
+        function openPopup() {
+            upgradesPopup.style.display = 'block';
+        }
+
+        function closePopup() {
+            upgradesPopup.style.display = 'none';
+        }
+
+        openUpgradesButton.addEventListener('click', openPopup);
+
+        // Обновление уровня
+        function updateLevel() {
+            let level = 1;
+            let nextLevelClicks = 5000;
+            if (clicks >= 5000) {
+                level = 2;
+                nextLevelClicks = 10000;
+            }
+            if (clicks >= 10000) {
+                level = 3;
+                nextLevelClicks = 50000;
+            }
+            if (clicks >= 50000) {
+                level = 4;
+                nextLevelClicks = 100000;
+            }
+            if (clicks >= 100000) {
+                level = 5;
+                nextLevelClicks = 1000000;
+            }
+            levelText.textContent = `Уровень ${level}`;
+            levelBarFill.style.width = `${(clicks / nextLevelClicks) * 100}%`;
+        }
+
+        updateUpgrades(); // Отображение улучшений
     </script>
 </body>
 </html>
